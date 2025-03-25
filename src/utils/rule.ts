@@ -1,60 +1,39 @@
-import type { RegisterOptions } from 'react-hook-form'
+import * as yup from 'yup'
 
-interface FormData {
-  email: string
-  password: string
-  confirm_password: string
-}
+// Định nghĩa các quy tắc validation riêng lẻ để tái sử dụng
+const emailValidation = yup
+  .string()
+  .required('Email là bắt buộc')
+  .min(5, 'Độ dài từ 5 - 160')
+  .max(160, 'Độ dài từ 5 - 160')
+  .email('Email không đúng định dạng')
 
-type Rules = {
-  [key in keyof FormData]: RegisterOptions<FormData, key>
-}
+const passwordValidation = yup
+  .string()
+  .required('Mật khẩu là bắt buộc')
+  .min(6, 'Độ dài mật khẩu từ 6 - 50 ký tự')
+  .max(50, 'Độ dài mật khẩu từ 6 - 50 ký tự')
 
-export const rule: Rules = {
-  email: {
-    required: {
-      value: true,
-      message: 'Vui lòng nhập email'
-    },
-    pattern: {
-      value: /^\S+@\S+\.\S+$/,
-      message: 'Vui lòng nhập đúng định dạng email'
-    },
-    maxLength: {
-      value: 160,
-      message: 'Độ dài từ 5-160 ký tự'
-    },
-    minLength: {
-      value: 5,
-      message: 'Độ dài lớn hơn 5 ký tự'
-    }
-  },
-  password: {
-    required: {
-      value: true,
-      message: 'Vui lòng nhập mật khẩu'
-    },
-    maxLength: {
-      value: 160,
-      message: 'Độ dài từ 5-160 ký tự'
-    },
-    minLength: {
-      value: 5,
-      message: 'Độ dài lớn hơn 5 ký tự'
-    }
-  },
-  confirm_password: {
-    required: {
-      value: true,
-      message: 'Vui lòng nhập xác nhận mật khẩu'
-    },
-    maxLength: {
-      value: 160,
-      message: 'Độ dài từ 5-160 ký tự'
-    },
-    minLength: {
-      value: 5,
-      message: 'Độ dài lớn hơn 5 ký tự'
-    }
-  }
-}
+// Schema cho Register
+export const registerSchema = yup.object({
+  email: emailValidation,
+  password: passwordValidation,
+  confirm_password: yup
+    .string()
+    .required('Xác nhận mật khẩu là bắt buộc')
+    .min(6, 'Độ dài mật khẩu từ 6 - 50 ký tự')
+    .max(50, 'Độ dài mật khẩu từ 6 - 50 ký tự')
+    .oneOf([yup.ref('password')], 'Nhập lại password không khớp')
+})
+
+// Schema cho Login
+export const loginSchema = yup.object({
+  email: emailValidation,
+  password: passwordValidation
+})
+
+// Định nghĩa type cho Register
+export type RegisterSchema = yup.InferType<typeof registerSchema>
+
+// Định nghĩa type cho Login
+export type LoginSchema = yup.InferType<typeof loginSchema>

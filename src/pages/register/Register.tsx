@@ -1,26 +1,38 @@
-import { rule } from '@/utils/rule'
+import { registerAccount } from '@/api/auth.api'
+import Input from '@/components/input'
+import { RegisterSchema, registerSchema } from '@/utils/rule'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useMutation } from '@tanstack/react-query'
+import { omit } from 'lodash'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 
-interface FormData {
-  email: string
-  password: string
-  confirm_password: string
-}
-
+type FormData = RegisterSchema
 const Register = () => {
   const {
     register,
     handleSubmit,
     formState: { errors }
-  } = useForm<FormData>()
+  } = useForm<FormData>({
+    resolver: yupResolver(registerSchema)
+  })
 
   const handleOnsubmit = handleSubmit((data) => {
-    console.log(data)
+    const body = omit(data, ['confirm_password'])
+    registerAccountMutation.mutate(body, {
+      onSuccess: (data) => {
+        console.log(data)
+      }
+    })
   })
+
+  const registerAccountMutation = useMutation({
+    mutationFn: (body: Omit<FormData, 'confirm_password'>) => registerAccount(body)
+  })
+
   return (
     <div className='min-h-screen bg-[#ee4d2d] flex'>
-      {/*Phần bên trái - Phần thương hiệu (ẩn trên thiết bị di động)*/}
+      {/* Phần bên trái - Phần thương hiệu (ẩn trên thiết bị di động) */}
       <div className='hidden lg:flex lg:w-1/2 items-center justify-center p-10'>
         <div className='text-center'>
           <div className='flex justify-center mb-5'>
@@ -46,27 +58,25 @@ const Register = () => {
           </div>
 
           <form onSubmit={handleOnsubmit}>
-            {/* Phone input */}
-            <div className='mb-5'>
-              <input
-                type='text'
-                {...register('email', rule.email)}
-                placeholder='Số điện thoại hoặc email'
-                className='w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]'
-                pattern='^\S+@\S+\.\S+$' // Thuộc tính HTML, kiểu string
-              />
-              <div className='mt-1 text-red-600 min-h-[1.25rem] text-sm'>{errors.email?.message}</div>
-            </div>
+            {/* Email input */}
+            <Input
+              name='email'
+              register={register}
+              type='text'
+              className='mt-8'
+              errorMessage={errors.email?.message}
+              placeholder='Email'
+            />
             {/* Password input */}
-            <div className='mb-5 relative'>
-              <input
+            <div className=' relative'>
+              <Input
+                name='password'
+                register={register}
                 type='password'
+                className='mt-2'
+                errorMessage={errors.password?.message}
                 placeholder='Mật khẩu'
-                {...register('password', rule.password)}
-                className='w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]'
               />
-              <div className='mt-1 text-red-600 min-h-[1.25rem] text-sm'>{errors.password?.message}</div>
-
               <button
                 type='button'
                 className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
@@ -87,16 +97,16 @@ const Register = () => {
                 </svg>
               </button>
             </div>
-            {/* Confirm Password  */}
-            <div className='mb-5 relative'>
-              <input
+            {/* Confirm Password */}
+            <div className='relative'>
+              <Input
+                name='confirm_password'
+                register={register}
                 type='password'
-                {...register('confirm_password', rule.confirm_password)}
-                placeholder='Xác nhận Mật khẩu'
-                className='w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]'
+                className='mt-2'
+                errorMessage={errors.confirm_password?.message}
+                placeholder='Xác nhận mật khẩu'
               />
-              <div className='mt-1 text-red-600 min-h-[1.25rem] text-sm'>{errors.confirm_password?.message}</div>
-
               <button
                 type='button'
                 className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
@@ -166,9 +176,9 @@ const Register = () => {
 
           {/* Registration link */}
           <p className='text-center mt-8 text-gray-600'>
-            Bạn mới đã có tài khoản?{' '}
+            Bạn đã có tài khoản?{' '}
             <Link to='/login' className='text-[#ee4d2d] cursor-pointer font-medium hover:underline'>
-              Đăng ký
+              Đăng nhập
             </Link>
           </p>
         </div>

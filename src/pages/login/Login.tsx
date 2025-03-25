@@ -1,3 +1,6 @@
+import Input from '@/components/input'
+import { loginSchema } from '@/utils/rule'
+import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 
@@ -6,8 +9,9 @@ const Login = () => {
     register,
     handleSubmit,
     formState: { errors }
-  } = useForm()
-
+  } = useForm({
+    resolver: yupResolver(loginSchema)
+  })
   const handleOnsubmit = handleSubmit((data) => {
     console.log(data)
   })
@@ -40,22 +44,23 @@ const Login = () => {
 
           <form onSubmit={handleOnsubmit}>
             {/* Phone input */}
-            <div className='mb-5'>
-              <input
-                type='text'
-                name='email'
-                placeholder='Số điện thoại hoặc email'
-                className='w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]'
-              />
-            </div>
-
+            <Input
+              name='email'
+              register={register}
+              type='text'
+              className='mt-8'
+              errorMessage={errors.email?.message}
+              placeholder='Email'
+            />
             {/* Password input */}
-            <div className='mb-5 relative'>
-              <input
-                type='password'
+            <div className=' relative'>
+              <Input
                 name='password'
+                register={register}
+                type='password'
+                className='mt-2'
+                errorMessage={errors.password?.message}
                 placeholder='Mật khẩu'
-                className='w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#ee4d2d] focus:border-[#ee4d2d]'
               />
               <button
                 type='button'
