@@ -1,19 +1,46 @@
+import { loginAccont } from '@/api/auth.api'
 import Input from '@/components/input'
-import { loginSchema } from '@/utils/rule'
+import { ResponseApi } from '@/types/util.type'
+import { LoginSchema, loginSchema } from '@/utils/rule'
+import { isAxiosUnprocessableEntityError } from '@/utils/utils'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
+type FormData = LoginSchema
 const Login = () => {
   const {
     register,
     handleSubmit,
+    setError,
+    reset,
     formState: { errors }
-  } = useForm({
+  } = useForm<FormData>({
     resolver: yupResolver(loginSchema)
   })
   const handleOnsubmit = handleSubmit((data) => {
-    console.log(data)
+    loginMutation.mutate(data, {
+      onError: (error) => {
+        if (isAxiosUnprocessableEntityError<ResponseApi<FormData>>(error)) {
+          const formErorr = error.response?.data.data
+          Object.keys(data).forEach((key) => {
+            setError(key as keyof FormData, {
+              message: formErorr?.[key as keyof Omit<FormData, 'confirm_password'>]?.[0] || ''
+            })
+          })
+        }
+      },
+      onSuccess: () => {
+        toast.success('Đăng nhập thành công')
+        reset()
+      }
+    })
+  })
+
+  const loginMutation = useMutation({
+    mutationFn: (body: FormData) => loginAccont(body)
   })
   return (
     <div className='min-h-screen bg-[#ee4d2d] flex'>
@@ -86,7 +113,7 @@ const Login = () => {
             {/* Login button */}
             <button
               type='submit'
-              className='w-full bg-[#ee4d2d] text-white py-3 rounded-md font-medium hover:bg-opacity-90 transition duration-200'
+              className='w-full bg-[#ee4d2d] text-white py-3 rounded-md font-medium hover:bg-opacity-90 transition duration-200 cursor-pointer mt-6'
             >
               ĐĂNG NHẬP
             </button>

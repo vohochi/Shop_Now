@@ -1,17 +1,22 @@
 import { registerAccount } from '@/api/auth.api'
 import Input from '@/components/input'
+import { ResponseApi } from '@/types/util.type'
 import { RegisterSchema, registerSchema } from '@/utils/rule'
+import { isAxiosUnprocessableEntityError } from '@/utils/utils'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation } from '@tanstack/react-query'
 import { omit } from 'lodash'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 type FormData = RegisterSchema
 const Register = () => {
   const {
     register,
     handleSubmit,
+    setError,
+    reset,
     formState: { errors }
   } = useForm<FormData>({
     resolver: yupResolver(registerSchema)
@@ -20,8 +25,19 @@ const Register = () => {
   const handleOnsubmit = handleSubmit((data) => {
     const body = omit(data, ['confirm_password'])
     registerAccountMutation.mutate(body, {
-      onSuccess: (data) => {
-        console.log(data)
+      onSuccess: () => {
+        toast.success('Đăng ký thành công')
+        reset()
+      },
+      onError: (error) => {
+        if (isAxiosUnprocessableEntityError<ResponseApi<Omit<FormData, 'confirm_password'>>>(error)) {
+          const formErorr = error.response?.data.data
+          Object.keys(data).forEach((key) => {
+            setError(key as keyof FormData, {
+              message: formErorr?.[key as keyof Omit<FormData, 'confirm_password'>]?.[0] || ''
+            })
+          })
+        }
       }
     })
   })

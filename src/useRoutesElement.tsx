@@ -3,12 +3,17 @@ import ProductList from './pages/productList'
 import Login from './pages/login'
 import Register from './pages/register'
 import RegisterLayout from './layouts/registerLayout/RegisterLayout'
+import MainLayout from '@/layouts/mainLayout'
 
 const useRoutesElement = () => {
   const routeElement = useRoutes([
     {
       path: '/',
-      element: <ProductList />
+      element: (
+        <MainLayout>
+          <ProductList />
+        </MainLayout>
+      )
     },
     {
       path: '/login',
